@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">👋 Xin chào {{role}}</h2>
+
+{% if role == 'student' %}
+<div class="card p-3 mb-4">
+    <h5>📤 Gửi văn bản</h5>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input class="form-control mb-2" name="title" placeholder="Tiêu đề">
+        <input class="form-control mb-2" type="file" name="file">
+        <button class="btn btn-primary">Gửi</button>
+    </form>
+</div>
+{% endif %}
+
+<h4>📥 Văn bản đang xử lý</h4>
+
+{% for doc in docs %}
+<div class="card p-3 mb-2">
+    <b>{{doc[1]}}</b>
+    <p>Trạng thái: {{doc[3]}}</p>
+
+    <a class="btn btn-sm btn-info" href="/file/{{doc[2]}}">Xem</a>
+
+    {% if role == 'staff' %}
+    <a class="btn btn-warning btn-sm" href="/to_leader/{{doc[0]}}">Gửi lãnh đạo</a>
+    {% endif %}
+
+    {% if role == 'admin' %}
+    <a class="btn btn-success btn-sm" href="/approve/{{doc[0]}}">✔ Duyệt</a>
+    <a class="btn btn-danger btn-sm" href="/reject/{{doc[0]}}">❌ Từ chối</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<hr>
+
+<h4>📁 Văn bản đã xử lý</h4>
+
+{% for doc in done_docs %}
+<div class="card p-3 mb-2 bg-light text-dark">
+    <b>{{doc[1]}}</b>
+    <p>{{doc[3]}}</p>
+    <a class="btn btn-secondary btn-sm" href="/file/{{doc[2]}}">Xem</a>
+</div>
+{% endfor %}
+
+{% endblock %}

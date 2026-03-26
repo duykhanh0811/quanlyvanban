@@ -10,13 +10,16 @@
         }
 
         .bg {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: url("/static/giang-duong-utt.jpg") no-repeat center center;
-            background-size: cover;
-            z-index: -2;
-        }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Sử dụng {{ url_for(...) }} thay vì viết đường dẫn trực tiếp */
+    background: url("{{ url_for('static', filename='giang-duong-utt.jpg') }}") no-repeat center center;
+    background-size: cover;
+    z-index: -1; /* Đổi thành -1 để đảm bảo không bị body đè lên */
+}
 
         .overlay {
             position: fixed;

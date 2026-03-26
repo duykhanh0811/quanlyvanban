@@ -5,30 +5,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            margin: 0;
-        }
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden; /* Tránh cuộn trang không cần thiết */
+    }
 
-        .bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Sử dụng {{ url_for(...) }} thay vì viết đường dẫn trực tiếp */
-    background: url("{{ url_for('static', filename='giang-duong-utt.jpg') }}") no-repeat center center;
-    background-size: cover;
-    z-index: -1; /* Đổi thành -1 để đảm bảo không bị body đè lên */
-}
+    .bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        /* Flask sẽ tìm ảnh trong thư mục static */
+        background: url("{{ url_for('static', filename='giang-duong-utt.jpg') }}") no-repeat center center;
+        background-size: cover;
+        z-index: -2; /* Đẩy ảnh xuống lớp thấp nhất */
+    }
 
-        .overlay {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: -1;
-        }
-    </style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4); /* Độ mờ vừa phải để nổi bật ô đăng nhập */
+        z-index: -1; /* Nằm trên ảnh nhưng dưới ô đăng nhập */
+    }
+</style>
 </head>
 
 <body>

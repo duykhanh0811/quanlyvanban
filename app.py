@@ -35,19 +35,19 @@ def init_db():
     )
     """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS documents (
-        id SERIAL PRIMARY KEY,
-        title TEXT,
-        filename TEXT,
-        status TEXT,
-        sender TEXT,
-        current_handler TEXT,
-        doc_type TEXT,
-        created_at TEXT,
-        receiver TEXT
-    )
-    """)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    filename TEXT,
+    status TEXT,
+    sender TEXT,
+    current_handler TEXT,
+    doc_type TEXT,
+    created_at TEXT,
+    target_class TEXT
+)
+""")
 
     db.commit()
     cur.close()
@@ -72,28 +72,29 @@ def create_admin():
 create_admin()
 
 # ================= LOGIN =================
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
+    error = None
+
     if request.method == "POST":
         user = request.form["username"]
         pw = request.form["password"]
 
         db = get_db()
-        cur = db.cursor()
-
-        cur.execute("SELECT * FROM users WHERE username=%s AND password=%s",(user,pw))
-        result = cur.fetchone()
-
-        cur.close()
-        db.close()
+        result = db.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (user, pw)
+        ).fetchone()
 
         if result:
-            session["user"] = result["username"]
+            session["user"] = user
             session["role"] = result["role"]
+            session["class"] = result["class"]
             return redirect("/dashboard")
+        else:
+            error = "Sai tài khoản hoặc mật khẩu!"
 
-    return render_template("login.html")
-
+    return render_template("login.html", error=error)
 # ================= REGISTER =================
 @app.route("/register", methods=["GET","POST"])
 def register():

@@ -17,6 +17,17 @@ def get_db():
 
 def init_db():
     db = get_db()
+    db.execute("""CREATE TABLE IF NOT EXISTS documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    filename TEXT,
+    status TEXT,
+    sender TEXT,
+    current_handler TEXT,
+    doc_type TEXT,
+    created_at TEXT,
+    receiver TEXT
+)""")
 
     db.execute("""CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -214,6 +225,23 @@ def stats():
                            pending=pending,
                            reject=reject,
                            recent=recent)
+
+@app.route("/send_to_student/<int:id>", methods=["POST"])
+def send_to_student(id):
+    receiver = request.form["receiver"]
+
+    db = get_db()
+    db.execute("""
+    UPDATE documents 
+    SET status='Đã gửi sinh viên',
+        current_handler='done',
+        receiver=?
+    WHERE id=?
+    """, (receiver, id))
+
+    db.commit()
+
+    return redirect(url_for("dashboard"))
 
 if __name__ == "__main__":
     app.run(debug=True)

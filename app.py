@@ -287,26 +287,43 @@ def stats():
     cur.execute("SELECT COUNT(*) FROM documents")
     total = cur.fetchone()["count"]
 
-    # Đã duyệt
-    cur.execute("SELECT COUNT(*) FROM documents WHERE status='Đã duyệt'")
-    approved = cur.fetchone()["count"]
+    # Đã xử lý (đã duyệt + từ chối)
+    cur.execute("""
+        SELECT COUNT(*) FROM documents 
+        WHERE status IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
+    """)
+    done = cur.fetchone()["count"]
+
+    # Đang chờ
+    cur.execute("""
+        SELECT COUNT(*) FROM documents 
+        WHERE status NOT IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
+    """)
+    pending = cur.fetchone()["count"]
 
     # Từ chối
     cur.execute("SELECT COUNT(*) FROM documents WHERE status='Từ chối'")
-    rejected = cur.fetchone()["count"]
+    reject = cur.fetchone()["count"]
 
-    # Chờ xử lý
-    cur.execute("SELECT COUNT(*) FROM documents WHERE status NOT IN ('Đã duyệt','Từ chối')")
-    pending = cur.fetchone()["count"]
+    # 5 văn bản gần nhất
+    cur.execute("""
+        SELECT * FROM documents 
+        ORDER BY id DESC 
+        LIMIT 5
+    """)
+    recent = cur.fetchall()
 
     cur.close()
     db.close()
 
-    return render_template("stats.html",
-                           total=total,
-                           approved=approved,
-                           rejected=rejected,
-                           pending=pending)
+    return render_template(
+        "stats.html",
+        total=total,
+        done=done,
+        pending=pending,
+        reject=reject,
+        recent=recent
+    )
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)

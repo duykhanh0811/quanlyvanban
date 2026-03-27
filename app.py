@@ -275,6 +275,38 @@ def logout():
     session.clear()
     return redirect("/")
 
+@app.route("/stats")
+def stats():
+    if "user" not in session:
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Tổng văn bản
+    cur.execute("SELECT COUNT(*) FROM documents")
+    total = cur.fetchone()["count"]
+
+    # Đã duyệt
+    cur.execute("SELECT COUNT(*) FROM documents WHERE status='Đã duyệt'")
+    approved = cur.fetchone()["count"]
+
+    # Từ chối
+    cur.execute("SELECT COUNT(*) FROM documents WHERE status='Từ chối'")
+    rejected = cur.fetchone()["count"]
+
+    # Chờ xử lý
+    cur.execute("SELECT COUNT(*) FROM documents WHERE status NOT IN ('Đã duyệt','Từ chối')")
+    pending = cur.fetchone()["count"]
+
+    cur.close()
+    db.close()
+
+    return render_template("stats.html",
+                           total=total,
+                           approved=approved,
+                           rejected=rejected,
+                           pending=pending)
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)

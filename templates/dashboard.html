@@ -2,57 +2,128 @@
 
 {% block content %}
 
-<h2>👋 Xin chào {{role}}</h2>
+<h3 class="mb-4">👋 Xin chào {{role}}</h3>
 
+<!-- ===== FORM GỬI ===== -->
 {% if role == 'student' %}
-<form action="/upload" method="post" enctype="multipart/form-data">
-    <input name="title" placeholder="Tiêu đề"><br>
-    
-    <select name="doc_type">
-        <option>Thông báo</option>
-        <option>Nghị quyết</option>
-        <option>Công văn</option>
-    </select><br>
+<div class="card p-3 mb-4">
+    <h5>📤 Gửi văn bản</h5>
 
-    <input type="file" name="file"><br>
-    <button>Gửi</button>
-</form>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col">
+                <input class="form-control" name="title" placeholder="Tiêu đề">
+            </div>
+
+            <div class="col">
+                <select class="form-control" name="doc_type">
+                    <option>Thông báo</option>
+                    <option>Nghị quyết</option>
+                    <option>Công văn</option>
+                </select>
+            </div>
+
+            <div class="col">
+                <input class="form-control" type="file" name="file">
+            </div>
+
+            <div class="col">
+                <button class="btn btn-primary">Gửi</button>
+            </div>
+        </div>
+    </form>
+</div>
 {% endif %}
 
-<hr>
+<!-- ===== VĂN BẢN ĐANG XỬ LÝ ===== -->
+<div class="card p-3 mb-4">
+    <h5>📥 Văn bản đang xử lý</h5>
 
-<h3>📥 Văn bản đang xử lý</h3>
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Loại</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
 
-{% for doc in docs %}
-<div>
-    <b>{{doc.title}}</b><br>
-    👤 {{doc.sender}}<br>
-    📂 {{doc.doc_type}}<br>
-    ⏰ {{doc.created_at}}<br>
-    📌 {{doc.status}}<br>
+        <tbody>
+        {% for doc in docs %}
+            <tr>
+                <td>{{doc.id}}</td>
+                <td>{{doc.title}}</td>
+                <td>{{doc.sender}}</td>
+                <td>{{doc.doc_type}}</td>
+                <td>{{doc.created_at}}</td>
+                <td>
+                    <span class="badge bg-warning text-dark">
+                        {{doc.status}}
+                    </span>
+                </td>
 
-    <a href="/file/{{doc.filename}}">Xem</a>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/file/{{doc.filename}}">Xem</a>
 
-    {% if role == 'staff' %}
-    <a href="/staff_approve/{{doc.id}}">✔ Duyệt</a>
-    <a href="/to_leader/{{doc.id}}">⬆ Gửi lãnh đạo</a>
-    {% endif %}
+                    {% if role == 'staff' %}
+                    <a class="btn btn-success btn-sm" href="/staff_approve/{{doc.id}}">✔</a>
+                    <a class="btn btn-warning btn-sm" href="/to_leader/{{doc.id}}">⬆</a>
+                    {% endif %}
 
-    {% if role == 'admin' %}
-    <a href="/approve/{{doc.id}}">✔ Duyệt</a>
-    <a href="/reject/{{doc.id}}">❌ Từ chối</a>
-    {% endif %}
+                    {% if role == 'admin' %}
+                    <a class="btn btn-success btn-sm" href="/approve/{{doc.id}}">✔</a>
+                    <a class="btn btn-danger btn-sm" href="/reject/{{doc.id}}">✖</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-<hr>
-{% endfor %}
 
-<h3>📁 Văn bản đã xử lý</h3>
+<!-- ===== VĂN BẢN ĐÃ XỬ LÝ ===== -->
+<div class="card p-3">
+    <h5>📁 Văn bản đã xử lý</h5>
 
-{% for doc in done_docs %}
-<div>
-    <b>{{doc.title}}</b><br>
-    {{doc.status}}<br>
+    <table class="table table-bordered table-striped">
+        <thead class="table-success">
+            <tr>
+                <th>#</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Loại</th>
+                <th>Thời gian</th>
+                <th>Kết quả</th>
+                <th>Xem</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for doc in done_docs %}
+            <tr>
+                <td>{{doc.id}}</td>
+                <td>{{doc.title}}</td>
+                <td>{{doc.sender}}</td>
+                <td>{{doc.doc_type}}</td>
+                <td>{{doc.created_at}}</td>
+                <td>
+                    {% if doc.status == 'Đã duyệt' %}
+                        <span class="badge bg-success">Đã duyệt</span>
+                    {% else %}
+                        <span class="badge bg-danger">Từ chối</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a class="btn btn-secondary btn-sm" href="/file/{{doc.filename}}">Xem</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endfor %}
 
 {% endblock %}

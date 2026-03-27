@@ -139,23 +139,30 @@ def dashboard():
         return redirect("/")
 
     db = get_db()
-    cur = db.cursor()
-
-    user = session["user"]
     role = session["role"]
+    user = session["user"]
+    user_class = session.get("class")
 
+    # 👉 SINH VIÊN: chỉ thấy của mình
     if role == "student":
-        cur.execute("SELECT * FROM documents WHERE sender=%s OR receiver=%s",(user,user))
+        docs = db.execute(
+            "SELECT * FROM documents WHERE sender=?",
+            (user,)
+        ).fetchall()
+
+    # 👉 VĂN THƯ: thấy tất cả đang chờ
+    elif role == "staff":
+        docs = db.execute(
+            "SELECT * FROM documents WHERE current_handler='staff'"
+        ).fetchall()
+
+    # 👉 ADMIN: thấy tất cả
     else:
-        cur.execute("SELECT * FROM documents WHERE current_handler=%s",(role,))
+        docs = db.execute("SELECT * FROM documents").fetchall()
 
-    docs = cur.fetchall()
-
-    cur.execute("SELECT * FROM documents WHERE status IN ('Đã duyệt','Từ chối')")
-    done_docs = cur.fetchall()
-
-    cur.close()
-    db.close()
+    done_docs = db.execute(
+        "SELECT * FROM documents WHERE status IN ('Đã duyệt','Từ chối')"
+    ).fetchall()
 
     return render_template("dashboard.html", docs=docs, done_docs=done_docs, role=role)
 
@@ -166,31 +173,28 @@ def upload():
     title = request.form["title"]
     doc_type = request.form["doc_type"]
 
-    if file:
+    if file and "user" in session:
         file.save(os.path.join(UPLOAD_FOLDER, file.filename))
 
         db = get_db()
-        cur = db.cursor()
-
-        cur.execute("""
-        INSERT INTO documents (title, filename, status, sender, current_handler, doc_type, created_at)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
-        """,(
+        db.execute("""
+        INSERT INTO documents 
+        (title, filename, status, sender, current_handler, doc_type, created_at, target_class)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
             title,
             file.filename,
             "Chờ văn thư",
             session["user"],
             "staff",
             doc_type,
-            datetime.now().strftime("%Y-%m-%d %H:%M")
+            datetime.now().strftime("%d/%m/%Y %H:%M"),
+            session.get("class")  # lớp người gửi
         ))
 
         db.commit()
-        cur.close()
-        db.close()
 
     return redirect("/dashboard")
-
 # ================= STAFF =================
 @app.route("/staff_send", methods=["POST"])
 def staff_send():

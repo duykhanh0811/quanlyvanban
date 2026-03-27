@@ -1,39 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Đăng nhập</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-    body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden; /* Tránh cuộn trang không cần thiết */
-    }
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
 
-    .bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        /* Flask sẽ tìm ảnh trong thư mục static */
-        background: url("{{ url_for('static', filename='giang-duong-utt.jpg') }}") no-repeat center center;
-        background-size: cover;
-        z-index: -2; /* Đẩy ảnh xuống lớp thấp nhất */
-    }
+        .bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: url("{{ url_for('static', filename='giang-duong-utt.jpg') }}") no-repeat center;
+            background-size: cover;
+            z-index: -2;
+        }
 
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4); /* Độ mờ vừa phải để nổi bật ô đăng nhập */
-        z-index: -1; /* Nằm trên ảnh nhưng dưới ô đăng nhập */
-    }
-</style>
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: -1;
+        }
+
+        .login-box {
+            width: 350px;
+            border-radius: 12px;
+        }
+    </style>
 </head>
 
 <body>
@@ -42,16 +40,17 @@
 <div class="overlay"></div>
 
 <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card p-4 shadow" style="width: 350px;">
+    <div class="card login-box p-4 shadow">
         <h3 class="text-center mb-3">🔐 Đăng nhập</h3>
 
         <form method="post">
-            <input class="form-control mb-2" name="username" placeholder="Username">
-            <input class="form-control mb-3" type="password" name="password" placeholder="Password">
+            <input class="form-control mb-2" name="username" placeholder="Tài khoản" required>
+            <input class="form-control mb-3" type="password" name="password" placeholder="Mật khẩu" required>
+
             <button class="btn btn-primary w-100">Đăng nhập</button>
         </form>
 
-        <a href="/register" class="text-center mt-3 d-block">Đăng ký</a>
+        <a href="/register" class="text-center mt-3 d-block">👉 Đăng ký tài khoản</a>
     </div>
 </div>
 

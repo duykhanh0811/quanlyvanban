@@ -4,7 +4,7 @@
 
 <h3 class="mb-4">👋 Xin chào {{role}}</h3>
 
-<!-- ===== FORM GỬI ===== -->
+<!-- ===== FORM SINH VIÊN ===== -->
 {% if role == 'student' %}
 <div class="card p-3 mb-4">
     <h5>📤 Gửi văn bản</h5>
@@ -35,16 +35,49 @@
 </div>
 {% endif %}
 
+
+<!-- ===== FORM VĂN THƯ ===== -->
+{% if role == 'staff' %}
+<div class="card p-3 mb-4">
+    <h5>📤 Tạo văn bản gửi lãnh đạo</h5>
+
+    <form action="/staff_send" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col">
+                <input class="form-control" name="title" placeholder="Tiêu đề">
+            </div>
+
+            <div class="col">
+                <select class="form-control" name="doc_type">
+                    <option>Thông báo</option>
+                    <option>Công văn</option>
+                </select>
+            </div>
+
+            <div class="col">
+                <input class="form-control" type="file" name="file">
+            </div>
+
+            <div class="col">
+                <button class="btn btn-primary">Gửi lên lãnh đạo</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+
 <!-- ===== VĂN BẢN ĐANG XỬ LÝ ===== -->
 <div class="card p-3 mb-4">
     <h5>📥 Văn bản đang xử lý</h5>
 
-    <table class="table table-bordered table-hover">
+    <table class="table table-bordered table-hover text-center">
         <thead class="table-dark">
             <tr>
-                <th>#</th>
+                <th>ID</th>
                 <th>Tiêu đề</th>
                 <th>Người gửi</th>
+                <th>Người nhận</th>
                 <th>Loại</th>
                 <th>Thời gian</th>
                 <th>Trạng thái</th>
@@ -58,6 +91,7 @@
                 <td>{{doc.id}}</td>
                 <td>{{doc.title}}</td>
                 <td>{{doc.sender}}</td>
+                <td>{{doc.receiver}}</td>
                 <td>{{doc.doc_type}}</td>
                 <td>{{doc.created_at}}</td>
                 <td>
@@ -69,14 +103,21 @@
                 <td>
                     <a class="btn btn-sm btn-info" href="/file/{{doc.filename}}">Xem</a>
 
+                    <!-- VĂN THƯ -->
                     {% if role == 'staff' %}
                     <a class="btn btn-success btn-sm" href="/staff_approve/{{doc.id}}">✔</a>
                     <a class="btn btn-warning btn-sm" href="/to_leader/{{doc.id}}">⬆</a>
                     {% endif %}
 
+                    <!-- ADMIN -->
                     {% if role == 'admin' %}
                     <a class="btn btn-success btn-sm" href="/approve/{{doc.id}}">✔</a>
                     <a class="btn btn-danger btn-sm" href="/reject/{{doc.id}}">✖</a>
+
+                    <form action="/send_to_student/{{doc.id}}" method="post" style="display:inline;">
+                        <input name="receiver" placeholder="SV" style="width:80px;">
+                        <button class="btn btn-primary btn-sm">📩</button>
+                    </form>
                     {% endif %}
                 </td>
             </tr>
@@ -85,16 +126,18 @@
     </table>
 </div>
 
+
 <!-- ===== VĂN BẢN ĐÃ XỬ LÝ ===== -->
 <div class="card p-3">
     <h5>📁 Văn bản đã xử lý</h5>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped text-center">
         <thead class="table-success">
             <tr>
-                <th>#</th>
+                <th>ID</th>
                 <th>Tiêu đề</th>
                 <th>Người gửi</th>
+                <th>Người nhận</th>
                 <th>Loại</th>
                 <th>Thời gian</th>
                 <th>Kết quả</th>
@@ -108,8 +151,10 @@
                 <td>{{doc.id}}</td>
                 <td>{{doc.title}}</td>
                 <td>{{doc.sender}}</td>
+                <td>{{doc.receiver}}</td>
                 <td>{{doc.doc_type}}</td>
                 <td>{{doc.created_at}}</td>
+
                 <td>
                     {% if doc.status == 'Đã duyệt' %}
                         <span class="badge bg-success">Đã duyệt</span>
@@ -117,6 +162,7 @@
                         <span class="badge bg-danger">Từ chối</span>
                     {% endif %}
                 </td>
+
                 <td>
                     <a class="btn btn-secondary btn-sm" href="/file/{{doc.filename}}">Xem</a>
                 </td>

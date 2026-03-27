@@ -194,5 +194,26 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+@app.route("/stats")
+def stats():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    db = get_db()
+
+    total = db.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+    done = db.execute("SELECT COUNT(*) FROM documents WHERE status='Đã duyệt'").fetchone()[0]
+    pending = db.execute("SELECT COUNT(*) FROM documents WHERE status LIKE 'Chờ%'").fetchone()[0]
+    reject = db.execute("SELECT COUNT(*) FROM documents WHERE status='Từ chối'").fetchone()[0]
+
+    recent = db.execute("SELECT * FROM documents ORDER BY id DESC LIMIT 5").fetchall()
+
+    return render_template("stats.html",
+                           total=total,
+                           done=done,
+                           pending=pending,
+                           reject=reject,
+                           recent=recent)
+
 if __name__ == "__main__":
     app.run(debug=True)

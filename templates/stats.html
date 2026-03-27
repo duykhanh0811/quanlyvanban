@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">📊 Dashboard & Quản lý văn bản</h3>
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Tổng văn bản</h6>
+            <h2 class="text-primary">{{total}}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Đã xử lý</h6>
+            <h2 class="text-success">{{done}}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Đang chờ</h6>
+            <h2 class="text-warning">{{pending}}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6>Từ chối</h6>
+            <h2 class="text-danger">{{reject}}</h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="card p-3">
+    <h5>📋 Văn bản gần đây</h5>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Loại</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for doc in recent %}
+        <tr>
+            <td>{{doc.id}}</td>
+            <td>{{doc.title}}</td>
+            <td>{{doc.sender}}</td>
+            <td>{{doc.doc_type}}</td>
+            <td>{{doc.created_at}}</td>
+            <td>
+                {% if doc.status == 'Đã duyệt' %}
+                    <span class="badge bg-success">Đã duyệt</span>
+                {% elif doc.status == 'Từ chối' %}
+                    <span class="badge bg-danger">Từ chối</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">{{doc.status}}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+{% endblock %}

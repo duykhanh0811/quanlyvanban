@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, session, send_from_directory, url_for
-import sqlite3
+from flask import Flask, render_template, request, redirect, session, url_for, send_from_directory
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import os
 from datetime import datetime
 
@@ -7,105 +8,115 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = "123"
 
 UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-# ================= DB =================
+# ================= DATABASE =================
 def get_db():
-    conn = sqlite3.connect("database_new.db", check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return psycopg2.connect(
+        os.environ.get("DATABASE_URL"),
+        cursor_factory=RealDictCursor
+    )
 
 def init_db():
     db = get_db()
-    db.execute("""CREATE TABLE IF NOT EXISTS documents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    filename TEXT,
-    status TEXT,
-    sender TEXT,
-    current_handler TEXT,
-    doc_type TEXT,
-    created_at TEXT,
-    receiver TEXT
-)""")
+    cur = db.cursor()
 
-    db.execute("""CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE,
         password TEXT,
         role TEXT,
         student_id TEXT,
         class TEXT,
         department_id TEXT,
         position TEXT
-    )""")
+    )
+    """)
 
-    db.execute("""CREATE TABLE IF NOT EXISTS documents (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS documents (
+        id SERIAL PRIMARY KEY,
         title TEXT,
         filename TEXT,
         status TEXT,
         sender TEXT,
         current_handler TEXT,
         doc_type TEXT,
-        created_at TEXT
-    )""")
+        created_at TEXT,
+        receiver TEXT
+    )
+    """)
 
     db.commit()
+    cur.close()
+    db.close()
 
 init_db()
 
+# tạo admin mặc định
 def create_admin():
     db = get_db()
-    check = db.execute("SELECT * FROM users WHERE role='admin'").fetchone()
-    if not check:
-        db.execute("INSERT INTO users (username, password, role) VALUES ('admin','123','admin')")
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM users WHERE role='admin'")
+    if not cur.fetchone():
+        cur.execute("INSERT INTO users (username, password, role) VALUES (%s,%s,%s)",
+                    ('admin','123','admin'))
         db.commit()
+
+    cur.close()
+    db.close()
 
 create_admin()
 
 # ================= LOGIN =================
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
         user = request.form["username"]
         pw = request.form["password"]
 
         db = get_db()
-        result = db.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
-            (user, pw)
-        ).fetchone()
+        cur = db.cursor()
+
+        cur.execute("SELECT * FROM users WHERE username=%s AND password=%s",(user,pw))
+        result = cur.fetchone()
+
+        cur.close()
+        db.close()
 
         if result:
-            session["user"] = user
+            session["user"] = result["username"]
             session["role"] = result["role"]
-            return redirect(url_for("dashboard"))
+            return redirect("/dashboard")
 
     return render_template("login.html")
 
 # ================= REGISTER =================
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
+        db = get_db()
+        cur = db.cursor()
+
         user = request.form["username"]
         pw = request.form["password"]
         role = request.form["role"]
 
-        db = get_db()
-        check = db.execute("SELECT * FROM users WHERE username=?", (user,)).fetchone()
-
-        if check:
-            return "Tài khoản đã tồn tại!"
+        cur.execute("SELECT * FROM users WHERE username=%s",(user,))
+        if cur.fetchone():
+            return "Tài khoản đã tồn tại"
 
         if role == "admin":
-            return "Không được tạo tài khoản lãnh đạo!"
+            return "Không được tạo admin"
 
-        db.execute("""
+        cur.execute("""
         INSERT INTO users (username, password, role, student_id, class, department_id, position)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            user, pw, role,
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """,(
+            user,pw,role,
             request.form.get("student_id"),
             request.form.get("class"),
             request.form.get("department_id"),
@@ -113,7 +124,10 @@ def register():
         ))
 
         db.commit()
-        return redirect(url_for("login"))
+        cur.close()
+        db.close()
+
+        return redirect("/")
 
     return render_template("register.html")
 
@@ -121,18 +135,26 @@ def register():
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
-        return redirect(url_for("login"))
+        return redirect("/")
 
     db = get_db()
-    role = session["role"]
+    cur = db.cursor()
+
     user = session["user"]
+    role = session["role"]
 
     if role == "student":
-        docs = db.execute("SELECT * FROM documents WHERE sender=?", (user,)).fetchall()
+        cur.execute("SELECT * FROM documents WHERE sender=%s OR receiver=%s",(user,user))
     else:
-        docs = db.execute("SELECT * FROM documents WHERE current_handler=?", (role,)).fetchall()
+        cur.execute("SELECT * FROM documents WHERE current_handler=%s",(role,))
 
-    done_docs = db.execute("SELECT * FROM documents WHERE status IN ('Đã duyệt','Từ chối')").fetchall()
+    docs = cur.fetchall()
+
+    cur.execute("SELECT * FROM documents WHERE status IN ('Đã duyệt','Từ chối')")
+    done_docs = cur.fetchall()
+
+    cur.close()
+    db.close()
 
     return render_template("dashboard.html", docs=docs, done_docs=done_docs, role=role)
 
@@ -143,14 +165,16 @@ def upload():
     title = request.form["title"]
     doc_type = request.form["doc_type"]
 
-    if file and "user" in session:
+    if file:
         file.save(os.path.join(UPLOAD_FOLDER, file.filename))
 
         db = get_db()
-        db.execute("""
+        cur = db.cursor()
+
+        cur.execute("""
         INSERT INTO documents (title, filename, status, sender, current_handler, doc_type, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """,(
             title,
             file.filename,
             "Chờ văn thư",
@@ -161,87 +185,122 @@ def upload():
         ))
 
         db.commit()
+        cur.close()
+        db.close()
 
-    return redirect(url_for("dashboard"))
+    return redirect("/dashboard")
 
-# ================= VĂN THƯ =================
+# ================= STAFF =================
+@app.route("/staff_send", methods=["POST"])
+def staff_send():
+    file = request.files["file"]
+    title = request.form["title"]
+    doc_type = request.form["doc_type"]
+
+    if file:
+        file.save(os.path.join(UPLOAD_FOLDER, file.filename))
+
+        db = get_db()
+        cur = db.cursor()
+
+        cur.execute("""
+        INSERT INTO documents (title, filename, status, sender, current_handler, doc_type, created_at)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """,(
+            title,
+            file.filename,
+            "Chờ lãnh đạo",
+            session["user"],
+            "admin",
+            doc_type,
+            datetime.now().strftime("%Y-%m-%d %H:%M")
+        ))
+
+        db.commit()
+        cur.close()
+        db.close()
+
+    return redirect("/dashboard")
+
 @app.route("/staff_approve/<int:id>")
 def staff_approve(id):
     db = get_db()
-    db.execute("UPDATE documents SET status='Đã duyệt', current_handler='done' WHERE id=?", (id,))
+    cur = db.cursor()
+
+    cur.execute("UPDATE documents SET status='Đã duyệt', current_handler='done' WHERE id=%s",(id,))
     db.commit()
-    return redirect(url_for("dashboard"))
+
+    cur.close()
+    db.close()
+    return redirect("/dashboard")
 
 @app.route("/to_leader/<int:id>")
 def to_leader(id):
     db = get_db()
-    db.execute("UPDATE documents SET status='Chờ lãnh đạo', current_handler='admin' WHERE id=?", (id,))
-    db.commit()
-    return redirect(url_for("dashboard"))
+    cur = db.cursor()
 
-# ================= LÃNH ĐẠO =================
+    cur.execute("UPDATE documents SET status='Chờ lãnh đạo', current_handler='admin' WHERE id=%s",(id,))
+    db.commit()
+
+    cur.close()
+    db.close()
+    return redirect("/dashboard")
+
+# ================= ADMIN =================
 @app.route("/approve/<int:id>")
 def approve(id):
     db = get_db()
-    db.execute("UPDATE documents SET status='Đã duyệt', current_handler='done' WHERE id=?", (id,))
+    cur = db.cursor()
+
+    cur.execute("UPDATE documents SET status='Đã duyệt', current_handler='done' WHERE id=%s",(id,))
     db.commit()
-    return redirect(url_for("dashboard"))
+
+    cur.close()
+    db.close()
+    return redirect("/dashboard")
 
 @app.route("/reject/<int:id>")
 def reject(id):
     db = get_db()
-    db.execute("UPDATE documents SET status='Từ chối', current_handler='done' WHERE id=?", (id,))
+    cur = db.cursor()
+
+    cur.execute("UPDATE documents SET status='Từ chối', current_handler='done' WHERE id=%s",(id,))
     db.commit()
-    return redirect(url_for("dashboard"))
 
-# ================= FILE =================
-@app.route("/file/<name>")
-def download_file(name):
-    return send_from_directory(UPLOAD_FOLDER, name)
-
-# ================= LOGOUT =================
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-@app.route("/stats")
-def stats():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    db = get_db()
-
-    total = db.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
-    done = db.execute("SELECT COUNT(*) FROM documents WHERE status='Đã duyệt'").fetchone()[0]
-    pending = db.execute("SELECT COUNT(*) FROM documents WHERE status LIKE 'Chờ%'").fetchone()[0]
-    reject = db.execute("SELECT COUNT(*) FROM documents WHERE status='Từ chối'").fetchone()[0]
-
-    recent = db.execute("SELECT * FROM documents ORDER BY id DESC LIMIT 5").fetchall()
-
-    return render_template("stats.html",
-                           total=total,
-                           done=done,
-                           pending=pending,
-                           reject=reject,
-                           recent=recent)
+    cur.close()
+    db.close()
+    return redirect("/dashboard")
 
 @app.route("/send_to_student/<int:id>", methods=["POST"])
 def send_to_student(id):
     receiver = request.form["receiver"]
 
     db = get_db()
-    db.execute("""
-    UPDATE documents 
-    SET status='Đã gửi sinh viên',
-        current_handler='done',
-        receiver=?
-    WHERE id=?
-    """, (receiver, id))
+    cur = db.cursor()
+
+    cur.execute("""
+    UPDATE documents
+    SET receiver=%s, status='Đã gửi sinh viên', current_handler='done'
+    WHERE id=%s
+    """,(receiver,id))
 
     db.commit()
+    cur.close()
+    db.close()
 
-    return redirect(url_for("dashboard"))
+    return redirect("/dashboard")
 
+# ================= FILE =================
+@app.route("/file/<name>")
+def file(name):
+    return send_from_directory(UPLOAD_FOLDER, name)
+
+# ================= LOGOUT =================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+# ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)

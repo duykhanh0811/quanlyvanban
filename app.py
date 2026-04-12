@@ -38,17 +38,22 @@ def init_db():
     # DOCUMENTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS documents (
-        id SERIAL PRIMARY KEY,
-        title TEXT,
-        filename TEXT,
-        status TEXT,
-        sender TEXT,
-        receiver TEXT,
-        current_handler TEXT,
-        doc_type TEXT,
-        created_at TEXT,
-        target_class TEXT
-    )
+    id SERIAL PRIMARY KEY,
+    code TEXT,
+    number TEXT,
+    title TEXT,
+    field TEXT,
+    agency TEXT,
+    doc_type TEXT,
+    created_at TEXT,
+    effective_date TEXT,
+    urgency TEXT,
+    security TEXT,
+    filename TEXT,
+    sender TEXT,
+    status TEXT,
+    current_handler TEXT
+)
     """)
 
     db.commit()
@@ -106,41 +111,108 @@ def login():
 
     return render_template("login.html", error=error)
 
-# ================= REGISTER =================
-@app.route("/register", methods=["GET", "POST"])
-def register():
+@app.route("/admin/add_user", methods=["GET","POST"])
+def add_user():
+    if "user" not in session or session["role"] != "admin":
+        return redirect("/")
+
     if request.method == "POST":
         db = get_db()
         cur = db.cursor()
 
-        user = request.form["username"]
-        pw = request.form["password"]
-        role = request.form["role"]
-
-        cur.execute("SELECT * FROM users WHERE username=%s", (user,))
-        if cur.fetchone():
-            return "Tài khoản đã tồn tại"
-
-        if role == "admin":
-            return "Không được tạo admin"
-
         cur.execute("""
-        INSERT INTO users (username, password, role, student_id, class)
-        VALUES (%s,%s,%s,%s,%s)
+        INSERT INTO users (username, password, role, student_id, class, department_id, position)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
         """, (
-            user, pw, role,
+            request.form["username"],
+            request.form["password"],
+            request.form["role"],
             request.form.get("student_id"),
-            request.form.get("class")
+            request.form.get("class"),
+            request.form.get("department_id"),
+            request.form.get("position")
         ))
 
         db.commit()
         cur.close()
         db.close()
 
+        return "Tạo tài khoản thành công!"
+
+    return render_template("add_user.html")
+
+@app.route("/create", methods=["GET","POST"])
+def create_doc():
+    if "user" not in session:
         return redirect("/")
 
-    return render_template("register.html")
+    if request.method == "POST":
+        db = get_db()
+        cur = db.cursor()
 
+        file = request.files["file"]
+
+        filename = ""
+        if file:
+            filename = file.filename
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+        cur.execute("""
+        INSERT INTO documents
+        (code, number, title, field, agency, doc_type,
+         created_at, effective_date, urgency, security,
+         filename, sender, status, current_handler)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            request.form["code"],
+            request.form["number"],
+            request.form["title"],
+            request.form["field"],
+            request.form["agency"],
+            request.form["doc_type"],
+            request.form["created_at"],
+            request.form["effective_date"],
+            request.form["urgency"],
+            request.form["security"],
+            filename,
+            session["user"],
+            "Chờ văn thư",
+            "staff"
+        ))
+
+        db.commit()
+        cur.close()
+        db.close()
+
+        return redirect("/library")
+
+    return render_template("create.html")
+
+@app.route("/library")
+def library():
+    if "user" not in session:
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    search = request.args.get("search", "")
+
+    if search:
+        cur.execute("""
+        SELECT * FROM documents
+        WHERE title ILIKE %s OR doc_type ILIKE %s
+        ORDER BY id DESC
+        """, (f"%{search}%", f"%{search}%"))
+    else:
+        cur.execute("SELECT * FROM documents ORDER BY id DESC")
+
+    docs = cur.fetchall()
+
+    cur.close()
+    db.close()
+
+    return render_template("library.html", docs=docs, search=search)
 # ================= DASHBOARD =================
 @app.route("/dashboard")
 def dashboard():

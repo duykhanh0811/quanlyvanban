@@ -7,9 +7,10 @@
     <style>
         body {
             margin: 0;
+            font-family: Arial, sans-serif;
         }
 
-        /* nền ảnh */
+        /* ===== BACKGROUND ===== */
         .bg {
             position: fixed;
             width: 100%;
@@ -19,41 +20,115 @@
             z-index: -2;
         }
 
-        /* lớp mờ */
         .overlay {
             position: fixed;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.5);
             z-index: -1;
         }
 
+        /* ===== SIDEBAR ===== */
         .sidebar {
             height: 100vh;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: white;
             padding: 20px;
+        }
+
+        .sidebar h4 {
+            text-align: center;
         }
 
         .sidebar a {
-            color: white;
             display: block;
-            margin: 10px 0;
+            color: white;
+            padding: 10px;
+            margin: 6px 0;
             text-decoration: none;
+            border-radius: 8px;
+            transition: 0.2s;
         }
 
         .sidebar a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* ===== MENU DROPDOWN ===== */
+        .menu-title {
+            cursor: pointer;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .menu-title:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .submenu {
+            display: none;
+            padding-left: 10px;
+            margin-top: 5px;
+            border-left: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .submenu a {
+            display: block;
+            padding: 6px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .submenu a:hover {
             color: #0d6efd;
         }
 
+        /* ===== CONTENT ===== */
         .content {
-            padding: 20px;
-            color: white;
+            padding: 25px;
+            color: black;
         }
 
+        /* ===== CARD ===== */
         .card {
             border-radius: 12px;
+            border: none;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
+
+        /* ===== TABLE ===== */
+        table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            text-align: center;
+        }
+
+        td {
+            vertical-align: middle;
+        }
+
+        /* ===== BADGE ===== */
+        .badge {
+            font-size: 14px;
+            padding: 6px 10px;
+        }
+        table td {
+    color: #b02a37;
+    font-weight: 500;
+}
+
+table th {
+    text-align: center;
+}
+
     </style>
 </head>
 
@@ -65,21 +140,66 @@
 <div class="container-fluid">
     <div class="row">
 
-        <!-- sidebar -->
+        <!-- ===== SIDEBAR ===== -->
         <div class="col-2 sidebar">
+
             <h4>📂 QL Văn Bản</h4>
             <hr>
+
             <a href="/dashboard">🏠 Trang chủ</a>
-            <a href="/logout">🚪 Đăng xuất</a>
+            <a href="/dashboard">📥 Văn bản đến</a>
+            <a href="/dashboard">📤 Văn bản đi</a>
+            <a href="/stats">📊 Thống kê</a>
+            <a href="/library">📚 Văn bản lưu trữ</a>
+            <a href="/create">➕ Thêm văn bản</a>
+            {% if session["role"] == "admin" %}
+    <a href="/admin/add_user">👤 Thêm tài khoản</a>
+{% endif %}
+
+            <!-- ===== MENU THƯ VIỆN ===== -->
+            <div class="menu-title" onclick="toggleMenu()">
+                📚 Thư viện văn bản
+            </div>
+
+            <div id="submenu" class="submenu">
+                <b>Loại văn bản</b>
+                <a href="#">Kế hoạch</a>
+                <a href="#">Quyết định</a>
+                <a href="#">Thông báo</a>
+
+                <b class="mt-2 d-block">Cơ quan</b>
+                <a href="#">Sở Y tế</a>
+                <a href="#">ĐH GTVT</a>
+
+                <b class="mt-2 d-block">Lĩnh vực</b>
+                <a href="#">Tài chính</a>
+                <a href="#">Thanh tra</a>
+                <a href="#">Y tế</a>
+            </div>
+
+            <hr>
+
+            <a href="/logout" style="background:#dc3545; text-align:center;">
+                🚪 Đăng xuất
+            </a>
+
         </div>
 
-        <!-- content -->
+        <!-- ===== CONTENT ===== -->
         <div class="col-10 content">
             {% block content %}{% endblock %}
         </div>
 
     </div>
 </div>
+
+<!-- ===== SCRIPT ===== -->
+<script>
+function toggleMenu() {
+    var menu = document.getElementById("submenu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+</script>
 
 </body>
 </html>

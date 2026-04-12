@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-4">➕ Thêm văn bản</h3>
+
+<div class="card p-4">
+
+<form method="post" enctype="multipart/form-data">
+
+<div class="row mb-3">
+    <div class="col">
+        <label>Mã văn bản</label>
+        <input name="code" class="form-control" required>
+    </div>
+
+    <div class="col">
+        <label>Số hiệu văn bản</label>
+        <input name="number" class="form-control" required>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label>Trích yếu</label>
+    <textarea name="title" class="form-control" required></textarea>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>Cơ quan ban hành</label>
+        <input name="agency" class="form-control" value="Trường ĐH GTVT">
+    </div>
+
+    <div class="col">
+        <label>Loại văn bản</label>
+        <select name="doc_type" class="form-control">
+            <option>Thông báo</option>
+            <option>Quyết định</option>
+            <option>Kế hoạch</option>
+        </select>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label>Lĩnh vực</label>
+    <input name="field" class="form-control" placeholder="Tài chính / Y tế / Thanh tra">
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>Ngày ban hành</label>
+        <input type="date" name="created_at" class="form-control">
+    </div>
+
+    <div class="col">
+        <label>Ngày hiệu lực</label>
+        <input type="date" name="effective_date" class="form-control">
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <label>Độ mật</label>
+        <select name="security" class="form-control">
+            <option>Bình thường</option>
+            <option>Mật</option>
+            <option>Tối mật</option>
+        </select>
+    </div>
+
+    <div class="col">
+        <label>Độ khẩn</label>
+        <select name="urgency" class="form-control">
+            <option>Bình thường</option>
+            <option>Khẩn</option>
+            <option>Hỏa tốc</option>
+        </select>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label>File đính kèm</label>
+    <input type="file" name="file" class="form-control">
+</div>
+
+<button class="btn btn-success">💾 Tạo văn bản</button>
+
+</form>
+
+</div>
+
+{% endblock %}

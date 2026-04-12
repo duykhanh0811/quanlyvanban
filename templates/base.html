@@ -151,6 +151,10 @@ table th {
             <a href="/dashboard">📤 Văn bản đi</a>
             <a href="/stats">📊 Thống kê</a>
             <a href="/library">📚 Văn bản lưu trữ</a>
+            <a href="/create">➕ Thêm văn bản</a>
+            {% if session["role"] == "admin" %}
+    <a href="/admin/add_user">👤 Thêm tài khoản</a>
+{% endif %}
 
             <!-- ===== MENU THƯ VIỆN ===== -->
             <div class="menu-title" onclick="toggleMenu()">

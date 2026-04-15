@@ -8,8 +8,8 @@
     <input class="form-control" name="search" placeholder="🔍 Tìm kiếm văn bản...">
 </form>
 
-<!-- 📤 FORM GỬI (SINH VIÊN) -->
-{% if role == 'student' %}
+<!-- 📤 FORM GỬI (giảng viên) -->
+{% if role == "lecturer" %}
 <div class="card p-3 mb-4 shadow">
     <h5>📤 Gửi văn bản</h5>
 
@@ -47,7 +47,7 @@
         </thead>
 
         <tbody>
-        {% for doc in docs %}
+        {% for doc in docs or [] %}
         <tr>
             <td>{{doc.id}}</td>
             <td>{{doc.title}}</td>
@@ -62,7 +62,11 @@
             </td>
 
             <td>
-                <a class="btn btn-info btn-sm" href="/file/{{doc.filename}}">Xem</a>
+                {% if doc.filename %}
+    <a class="btn btn-info btn-sm" href="/file/{{doc.filename}}">Xem</a>
+{% else %}
+    <span class="text-muted">Không có file</span>
+{% endif %}
 
                 {% if role == 'staff' %}
                 <a class="btn btn-success btn-sm" href="/staff_approve/{{doc.id}}">✔</a>

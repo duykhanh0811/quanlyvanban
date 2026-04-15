@@ -4,7 +4,6 @@
 
 <h3 class="mb-4">📚 Văn bản lưu trữ</h3>
 
-<!-- SEARCH -->
 <form method="get" action="/library" class="mb-3 d-flex">
     <input type="text" name="search" value="{{search}}" 
            class="form-control me-2" placeholder="Tìm kiếm...">
@@ -44,4 +43,10 @@
 
 </table>
 
+{% if docs|length == 0 %}
+    <p class="text-danger text-center mt-3">Không tìm thấy văn bản</p>
+{% endif %}
+
 </div>
+
+{% endblock %}

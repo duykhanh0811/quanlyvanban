@@ -196,18 +196,28 @@ def library():
     db = get_db()
     cur = db.cursor()
 
-    search = request.args.get("search", "")
+    search = request.args.get("search", "").strip()
 
     if search:
         cur.execute("""
-        SELECT * FROM documents
-        WHERE title ILIKE %s OR doc_type ILIKE %s
-        ORDER BY id DESC
-        """, (f"%{search}%", f"%{search}%"))
+    SELECT * FROM documents
+    WHERE 
+        title ILIKE %s OR 
+        doc_type ILIKE %s OR
+        code ILIKE %s OR
+        number ILIKE %s OR
+        agency ILIKE %s
+    ORDER BY id DESC
+    """, (
+        f"%{search}%",
+        f"%{search}%",
+        f"%{search}%",
+        f"%{search}%",
+        f"%{search}%"
+    ))
     else:
         cur.execute("SELECT * FROM documents ORDER BY id DESC")
-
-    docs = cur.fetchall()
+    docs = cur.fetchall()  
 
     cur.close()
     db.close()

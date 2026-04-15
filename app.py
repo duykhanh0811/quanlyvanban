@@ -279,19 +279,18 @@ def upload():
         cur = db.cursor()
 
         cur.execute("""
-        INSERT INTO documents 
-        (title, filename, status, sender, current_handler, doc_type, created_at)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (
-            title,
-            filename,
-            "Chờ văn thư",
-            session["user"],
-            "staff",
-            doc_type,
-            datetime.now().strftime("%d/%m/%Y %H:%M"),
-            session.get("department")
-        ))
+INSERT INTO documents 
+(title, filename, status, sender, current_handler, doc_type, created_at)
+VALUES (%s,%s,%s,%s,%s,%s,%s)
+""", (
+    title,
+    filename,
+    "Chờ văn thư",
+    session["user"],
+    "staff",
+    doc_type,
+    datetime.now().strftime("%d/%m/%Y %H:%M")
+))
 
         db.commit()
         cur.close()

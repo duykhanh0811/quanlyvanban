@@ -200,28 +200,33 @@ def library():
     db = get_db()
     cur = db.cursor()
 
-    search = request.args.get("search", "").strip()
+    search = request.args.get("search", "")
 
-    if search:
-        cur.execute("""
-    SELECT * FROM documents
-    WHERE 
-        title ILIKE %s OR 
-        doc_type ILIKE %s OR
-        code ILIKE %s OR
-        number ILIKE %s OR
-        agency ILIKE %s
-    ORDER BY id DESC
-    """, (
-        f"%{search}%",
-        f"%{search}%",
-        f"%{search}%",
-        f"%{search}%",
-        f"%{search}%"
-    ))
-    else:
-        cur.execute("SELECT * FROM documents ORDER BY id DESC")
-    docs = cur.fetchall()  
+    try:
+        if search:
+            cur.execute("""
+                SELECT * FROM documents
+                WHERE 
+                    title ILIKE %s OR 
+                    doc_type ILIKE %s OR
+                    COALESCE(code,'') ILIKE %s OR
+                    COALESCE(number,'') ILIKE %s OR
+                    COALESCE(agency,'') ILIKE %s
+                ORDER BY id DESC
+            """, (
+                f"%{search}%",
+                f"%{search}%",
+                f"%{search}%",
+                f"%{search}%",
+                f"%{search}%"
+            ))
+        else:
+            cur.execute("SELECT * FROM documents ORDER BY id DESC")
+
+        docs = cur.fetchall()
+
+    except Exception as e:
+        return f"Lỗi search: {e}"   # 🔥 HIỆN LỖI THẬT
 
     cur.close()
     db.close()

@@ -280,7 +280,7 @@ def upload():
 
         cur.execute("""
         INSERT INTO documents 
-        (title, filename, status, sender, current_handler, doc_type, created_at, target_class)
+        (title, filename, status, sender, current_handler, doc_type, created_at)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """, (
             title,
@@ -290,7 +290,7 @@ def upload():
             "staff",
             doc_type,
             datetime.now().strftime("%d/%m/%Y %H:%M"),
-            session.get("class")
+            session.get("department")
         ))
 
         db.commit()

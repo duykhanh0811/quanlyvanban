@@ -25,43 +25,52 @@ def init_db():
 
     # USERS
     cur.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT,
-    full_name TEXT,
-    lecturer_id TEXT,
-    department TEXT,
-    position TEXT
-)
-""")
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE,
+        password TEXT,
+        role TEXT
+    )
+    """)
+
+    # thêm cột nếu thiếu
+    cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT")
+    cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS lecturer_id TEXT")
+    cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT")
+    cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS position TEXT")
 
     # DOCUMENTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS documents (
-    id SERIAL PRIMARY KEY,
-    code TEXT,
-    number TEXT,
-    title TEXT,
-    field TEXT,
-    agency TEXT,
-    doc_type TEXT,
-    created_at TEXT,
-    effective_date TEXT,
-    urgency TEXT,
-    security TEXT,
-    filename TEXT,
-    sender TEXT,
-    status TEXT,
-    current_handler TEXT
-)
+        id SERIAL PRIMARY KEY
+    )
     """)
+
+    # thêm cột nếu thiếu
+    columns = [
+        "code TEXT",
+        "number TEXT",
+        "title TEXT",
+        "field TEXT",
+        "agency TEXT",
+        "doc_type TEXT",
+        "created_at TEXT",
+        "effective_date TEXT",
+        "urgency TEXT",
+        "security TEXT",
+        "filename TEXT",
+        "sender TEXT",
+        "status TEXT",
+        "current_handler TEXT"
+    ]
+
+    for col in columns:
+        name = col.split()[0]
+        cur.execute(f"ALTER TABLE documents ADD COLUMN IF NOT EXISTS {col}")
 
     db.commit()
     cur.close()
     db.close()
-
 init_db()
 
 # tạo admin

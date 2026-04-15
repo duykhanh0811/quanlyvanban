@@ -25,7 +25,6 @@ def init_db():
 
     # USERS
     cur.execute("""
-    cur.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE,
@@ -37,7 +36,6 @@ CREATE TABLE IF NOT EXISTS users (
     position TEXT
 )
 """)
-    """)
 
     # DOCUMENTS
     cur.execute("""

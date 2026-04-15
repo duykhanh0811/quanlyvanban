@@ -25,14 +25,16 @@ def init_db():
 
     # USERS
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT,
         role TEXT,
-        student_id TEXT,
-        class TEXT
-    )
+        full_name TEXT,
+        lecturer_id TEXT,
+        department TEXT,
+        position TEXT
+);
     """)
 
     # DOCUMENTS
@@ -104,7 +106,8 @@ def login():
         if result:
             session["user"] = user
             session["role"] = result["role"]
-            session["class"] = result["class"]
+            session["department"] = result["department"]
+            session["position"] = result["position"]
             return redirect("/dashboard")
         else:
             error = "Sai tài khoản hoặc mật khẩu!"
@@ -121,17 +124,18 @@ def add_user():
         cur = db.cursor()
 
         cur.execute("""
-        INSERT INTO users (username, password, role, student_id, class, department_id, position)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
-        """, (
-            request.form["username"],
-            request.form["password"],
-            request.form["role"],
-            request.form.get("student_id"),
-            request.form.get("class"),
-            request.form.get("department_id"),
-            request.form.get("position")
-        ))
+INSERT INTO users (username, password, role, full_name, lecturer_id, department, position)
+VALUES (%s,%s,%s,%s,%s,%s,%s)
+""", (
+    request.form["username"],
+    request.form["password"],
+    request.form["role"],
+    request.form.get("full_name"),
+    request.form.get("lecturer_id"),
+    request.form.get("department"),
+    request.form.get("position")
+))
+
 
         db.commit()
         cur.close()
@@ -236,10 +240,9 @@ def dashboard():
     user = session["user"]
 
     # SINH VIÊN
-    if role == "student":
+    if role == "lecturer":
         cur.execute("SELECT * FROM documents WHERE sender=%s", (user,))
         docs = cur.fetchall()
-
     # VĂN THƯ
     elif role == "staff":
         cur.execute("SELECT * FROM documents WHERE current_handler='staff'")

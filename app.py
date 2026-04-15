@@ -25,16 +25,18 @@ def init_db():
 
     # USERS
     cur.execute("""
-    CREATE TABLE users (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE,
-        password TEXT,
-        role TEXT,
-        full_name TEXT,
-        lecturer_id TEXT,
-        department TEXT,
-        position TEXT
-);
+    cur.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE,
+    password TEXT,
+    role TEXT,
+    full_name TEXT,
+    lecturer_id TEXT,
+    department TEXT,
+    position TEXT
+)
+""")
     """)
 
     # DOCUMENTS

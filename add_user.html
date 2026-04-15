@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>➕ Tạo tài khoản</h3>
+
+<form method="post">
+
+    <input class="form-control mb-2" name="username" placeholder="Username">
+
+    <input class="form-control mb-2" name="password" placeholder="Password">
+
+    <select class="form-control mb-2" name="role">
+        <option value="lecturer">Giảng viên</option>
+        <option value="staff">Văn thư</option>
+        <option value="admin">Lãnh đạo</option>
+    </select>
+
+    <input class="form-control mb-2" name="full_name" placeholder="Họ và tên">
+
+    <input class="form-control mb-2" name="lecturer_id" placeholder="Mã giảng viên">
+
+    <input class="form-control mb-2" name="department" placeholder="Khoa / Bộ môn">
+
+    <input class="form-control mb-2" name="position" placeholder="Chức vụ">
+
+    <button class="btn btn-primary">Tạo tài khoản</button>
+
+</form>
+
+{% endblock %}

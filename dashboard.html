@@ -1,50 +1,128 @@
 {% extends "base.html" %}
-
 {% block content %}
 
-<h2 class="mb-4">👋 Xin chào {{role}}</h2>
+<h3 class="mb-4">👋 Xin chào {{role}}</h3>
 
-{% if role == 'student' %}
-<div class="card p-3 mb-4">
+<!-- 🔎 SEARCH -->
+<form method="get" class="mb-3">
+    <input class="form-control" name="search" placeholder="🔍 Tìm kiếm văn bản...">
+</form>
+
+<!-- 📤 FORM GỬI (giảng viên) -->
+{% if role == "lecturer" %}
+<div class="card p-3 mb-4 shadow">
     <h5>📤 Gửi văn bản</h5>
+
     <form action="/upload" method="post" enctype="multipart/form-data">
         <input class="form-control mb-2" name="title" placeholder="Tiêu đề">
+
+        <select class="form-control mb-2" name="doc_type">
+            <option>Thông báo</option>
+            <option>Nghị quyết</option>
+            <option>Công văn</option>
+        </select>
+
         <input class="form-control mb-2" type="file" name="file">
-        <button class="btn btn-primary">Gửi</button>
+
+        <button class="btn btn-primary w-100">Gửi</button>
     </form>
 </div>
 {% endif %}
 
-<h4>📥 Văn bản đang xử lý</h4>
+<!-- 📥 ĐANG XỬ LÝ -->
+<div class="card p-3 mb-4 shadow">
+    <h5>📥 Văn bản đang xử lý</h5>
 
-{% for doc in docs %}
-<div class="card p-3 mb-2">
-    <b>{{doc[1]}}</b>
-    <p>Trạng thái: {{doc[3]}}</p>
+    <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Loại</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
 
-    <a class="btn btn-sm btn-info" href="/file/{{doc[2]}}">Xem</a>
+        <tbody>
+        {% for doc in docs %}
+        <tr>
+            <td>{{doc.id}}</td>
+            <td>{{doc.title}}</td>
+            <td>{{doc.sender}}</td>
+            <td>{{doc.doc_type}}</td>
+            <td>{{doc.created_at}}</td>
 
-    {% if role == 'staff' %}
-    <a class="btn btn-warning btn-sm" href="/to_leader/{{doc[0]}}">Gửi lãnh đạo</a>
-    {% endif %}
+            <td>
+                <span class="badge bg-warning text-dark">
+                    {{doc.status}}
+                </span>
+            </td>
 
-    {% if role == 'admin' %}
-    <a class="btn btn-success btn-sm" href="/approve/{{doc[0]}}">✔ Duyệt</a>
-    <a class="btn btn-danger btn-sm" href="/reject/{{doc[0]}}">❌ Từ chối</a>
-    {% endif %}
+            <td>
+                <a class="btn btn-info btn-sm" href="/file/{{doc.filename}}">Xem</a>
+
+                {% if role == 'staff' %}
+                <a class="btn btn-success btn-sm" href="/staff_approve/{{doc.id}}">✔</a>
+                <a class="btn btn-warning btn-sm" href="/to_leader/{{doc.id}}">⬆</a>
+                {% endif %}
+
+                {% if role == 'admin' %}
+                <a class="btn btn-success btn-sm" href="/approve/{{doc.id}}">✔</a>
+                <a class="btn btn-danger btn-sm" href="/reject/{{doc.id}}">✖</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endfor %}
 
-<hr>
+<!-- 📁 ĐÃ XỬ LÝ -->
+<div class="card p-3 shadow">
+    <h5>📁 Văn bản đã xử lý</h5>
 
-<h4>📁 Văn bản đã xử lý</h4>
+    <table class="table table-striped text-center">
+        <thead class="table-success">
+            <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Người gửi</th>
+                <th>Loại</th>
+                <th>Thời gian</th>
+                <th>Kết quả</th>
+                <th>Xem</th>
+            </tr>
+        </thead>
 
-{% for doc in done_docs %}
-<div class="card p-3 mb-2 bg-light text-dark">
-    <b>{{doc[1]}}</b>
-    <p>{{doc[3]}}</p>
-    <a class="btn btn-secondary btn-sm" href="/file/{{doc[2]}}">Xem</a>
+        <tbody>
+        {% for doc in done_docs %}
+        <tr>
+            <td>{{doc.id}}</td>
+            <td>{{doc.title}}</td>
+            <td>{{doc.sender}}</td>
+            <td>{{doc.doc_type}}</td>
+            <td>{{doc.created_at}}</td>
+
+            <td>
+                {% if doc.status == 'Đã duyệt' %}
+                    <span class="badge bg-success">✔ Đã duyệt</span>
+                {% elif doc.status == 'Đã duyệt (văn thư)' %}
+                    <span class="badge bg-primary">✔ Văn thư duyệt</span>
+                {% else %}
+                    <span class="badge bg-danger">✖ Từ chối</span>
+                {% endif %}
+            </td>
+
+            <td>
+                <a class="btn btn-secondary btn-sm" href="/file/{{doc.filename}}">Xem</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endfor %}
 
 {% endblock %}

@@ -106,8 +106,8 @@ def login():
         if result:
             session["user"] = user
             session["role"] = result["role"]
-            session["department"] = result["department"]
-            session["position"] = result["position"]
+            session["department"] = result.get("department", "")
+            session["position"] = result.get("position", "")
             return redirect("/dashboard")
         else:
             error = "Sai tài khoản hoặc mật khẩu!"
@@ -154,7 +154,7 @@ def create_doc():
         db = get_db()
         cur = db.cursor()
 
-        file = request.files["file"]
+        file = request.files.get("file")
 
         filename = ""
         if file:
@@ -239,25 +239,25 @@ def dashboard():
     role = session["role"]
     user = session["user"]
 
-    # SINH VIÊN
-    if role == "lecturer":
-        cur.execute("SELECT * FROM documents WHERE sender=%s", (user,))
-        docs = cur.fetchall()
-    # VĂN THƯ
-    elif role == "staff":
-        cur.execute("SELECT * FROM documents WHERE current_handler='staff'")
-        docs = cur.fetchall()
+    try:
+        if role == "lecturer":
+            cur.execute("SELECT * FROM documents WHERE sender=%s", (user,))
+            docs = cur.fetchall()
+        elif role == "staff":
+            cur.execute("SELECT * FROM documents WHERE current_handler='staff'")
+            docs = cur.fetchall()
+        else:
+            cur.execute("SELECT * FROM documents")
+            docs = cur.fetchall()
 
-    # ADMIN
-    else:
-        cur.execute("SELECT * FROM documents")
-        docs = cur.fetchall()
+        cur.execute("""
+            SELECT * FROM documents 
+            WHERE status IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
+        """)
+        done_docs = cur.fetchall()
 
-    cur.execute("""
-        SELECT * FROM documents 
-        WHERE status IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
-    """)
-    done_docs = cur.fetchall()
+    except Exception as e:
+        return f"Lỗi dashboard: {e}"
 
     cur.close()
     db.close()
@@ -360,6 +360,11 @@ def reject(id):
 # ================= FILE =================
 @app.route("/file/<name>")
 def file(name):
+    path = os.path.join(UPLOAD_FOLDER, name)
+
+    if not name or not os.path.exists(path):
+        return "File không tồn tại!"
+
     return send_from_directory(UPLOAD_FOLDER, name)
 
 # ================= LOGOUT =================

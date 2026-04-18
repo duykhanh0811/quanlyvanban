@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>📢 Gửi phản hồi</h3>
+
+<div class="card p-4 shadow">
+    <form action="/report" method="post">
+        <textarea class="form-control mb-3" name="content" placeholder="Nhập phản hồi..." required></textarea>
+        <button class="btn btn-warning">Gửi phản hồi</button>
+    </form>
+</div>
+
+{% endblock %}

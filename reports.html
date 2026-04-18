@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>📢 Báo cáo & phản hồi</h3>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Người gửi</th>
+        <th>Nội dung</th>
+        <th>Phản hồi</th>
+        <th>Trạng thái</th>
+        <th>Trả lời</th>
+    </tr>
+
+    {% for r in reports %}
+    <tr>
+        <td>{{r.sender}}</td>
+        <td>{{r.content}}</td>
+        <td>{{r.reply}}</td>
+        <td>{{r.status}}</td>
+
+        <td>
+            <form action="/reply/{{r.id}}" method="post">
+                <input name="reply" class="form-control mb-1">
+                <button class="btn btn-success btn-sm">Gửi</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock %}

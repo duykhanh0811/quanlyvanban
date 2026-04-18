@@ -275,7 +275,10 @@ def dashboard():
             ocs = cur.fetchall()
 
         elif role == "leader":   # 🔥 THÊM DÒNG NÀY
-            cur.execute("SELECT * FROM documents WHERE current_handler='admin'")
+            cur.execute(
+    "UPDATE documents SET status='Chờ lãnh đạo', current_handler='leader' WHERE id=%s",
+    (id,)
+)
             docs = cur.fetchall()
 
         elif role == "admin":

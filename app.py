@@ -144,14 +144,26 @@ def add_user():
         db = get_db()
         cur = db.cursor()
 
+        username = request.form["username"]
+        password = request.form["password"]
+        role = request.form["role"]
+
+        print("DEBUG ROLE:", role)  # 🔥 check xem có phải leader không
+
         try:
+            # 🔥 CHECK TRÙNG USERNAME
+            cur.execute("SELECT * FROM users WHERE username=%s", (username,))
+            if cur.fetchone():
+                return "❌ Username đã tồn tại!"
+
+            # 🔥 INSERT
             cur.execute("""
                 INSERT INTO users (username, password, role, full_name, lecturer_id, department, position)
                 VALUES (%s,%s,%s,%s,%s,%s,%s)
             """, (
-                request.form["username"],
-                request.form["password"],
-                request.form["role"],
+                username,
+                password,
+                role,
                 request.form.get("full_name"),
                 request.form.get("lecturer_id"),
                 request.form.get("department"),
@@ -161,13 +173,13 @@ def add_user():
             db.commit()
 
         except Exception as e:
-            return f"Lỗi tạo tài khoản: {e}"   # 🔥 in lỗi thật
+            return f"Lỗi tạo tài khoản: {e}"
 
         finally:
             cur.close()
             db.close()
 
-        return "Tạo tài khoản thành công!"
+        return redirect("/admin/users")  # 🔥 QUAN TRỌNG
 
     return render_template("add_user.html")
 

@@ -269,10 +269,16 @@ def dashboard():
         if role == "lecturer":
             cur.execute("SELECT * FROM documents WHERE sender=%s", (user,))
             docs = cur.fetchall()
+
         elif role == "staff":
             cur.execute("SELECT * FROM documents WHERE current_handler='staff'")
+            ocs = cur.fetchall()
+
+        elif role == "leader":   # 🔥 THÊM DÒNG NÀY
+            cur.execute("SELECT * FROM documents WHERE current_handler='admin'")
             docs = cur.fetchall()
-        else:
+
+        elif role == "admin":
             cur.execute("SELECT * FROM documents")
             docs = cur.fetchall()
 

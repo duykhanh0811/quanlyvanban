@@ -360,8 +360,10 @@ def to_leader(id):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("UPDATE documents SET status='Chờ lãnh đạo', current_handler='admin' WHERE id=%s", (id,))
-    db.commit()
+    cur.execute(
+    "UPDATE documents SET status='Chờ lãnh đạo', current_handler='leader' WHERE id=%s",
+    (id,)
+)
 
     cur.close()
     db.close()

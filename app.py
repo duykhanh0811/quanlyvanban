@@ -419,6 +419,69 @@ def reply(id):
 
     return redirect("/admin/reports")
 
+@app.route("/admin/users")
+def manage_users():
+    if "user" not in session or session["role"] != "admin":
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM users ORDER BY id DESC")
+    users = cur.fetchall()
+
+    cur.close()
+    db.close()
+
+    return render_template("users.html", users=users)
+
+@app.route("/admin/edit_user/<int:id>", methods=["GET","POST"])
+def edit_user(id):
+    if "user" not in session or session["role"] != "admin":
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    if request.method == "POST":
+        cur.execute("""
+        UPDATE users 
+        SET username=%s, role=%s, department=%s, position=%s
+        WHERE id=%s
+        """, (
+            request.form["username"],
+            request.form["role"],
+            request.form["department"],
+            request.form["position"],
+            id
+        ))
+        db.commit()
+        return redirect("/admin/users")
+
+    cur.execute("SELECT * FROM users WHERE id=%s", (id,))
+    user_data = cur.fetchone()
+
+    cur.close()
+    db.close()
+
+    return render_template("edit_user.html", u=user_data)
+
+@app.route("/admin/delete_user/<int:id>")
+def delete_user(id):
+    if "user" not in session or session["role"] != "admin":
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("DELETE FROM users WHERE id=%s", (id,))
+    db.commit()
+
+    cur.close()
+    db.close()
+
+    return redirect("/admin/users")
+
 # ================= FILE =================
 @app.route("/file/<name>")
 def file(name):

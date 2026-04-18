@@ -516,6 +516,13 @@ def report():
 
     return redirect("/dashboard")
 
+@app.route("/report_page")
+def report_page():
+    if "user" not in session:
+        return redirect("/")
+
+    return render_template("report_page.html")
+
 # ================= LOGOUT =================
 @app.route("/logout")
 def logout():

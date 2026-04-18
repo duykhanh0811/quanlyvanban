@@ -361,9 +361,11 @@ def to_leader(id):
     cur = db.cursor()
 
     cur.execute(
-    "UPDATE documents SET status='Chờ lãnh đạo', current_handler='leader' WHERE id=%s",
-    (id,)
-)
+        "UPDATE documents SET status='Chờ lãnh đạo', current_handler='leader' WHERE id=%s",
+        (id,)
+    )
+
+    db.commit()   # 🔥 BẮT BUỘC PHẢI CÓ
 
     cur.close()
     db.close()

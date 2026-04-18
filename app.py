@@ -265,20 +265,20 @@ def dashboard():
     role = session["role"]
     user = session["user"]
 
+    docs = []
+
     try:
+
         if role == "lecturer":
             cur.execute("SELECT * FROM documents WHERE sender=%s", (user,))
             docs = cur.fetchall()
 
         elif role == "staff":
             cur.execute("SELECT * FROM documents WHERE current_handler='staff'")
-            ocs = cur.fetchall()
+            docs = cur.fetchall()
 
-        elif role == "leader":   # 🔥 THÊM DÒNG NÀY
-            cur.execute(
-    "UPDATE documents SET status='Chờ lãnh đạo', current_handler='leader' WHERE id=%s",
-    (id,)
-)
+        elif role == "leader":
+            cur.execute("SELECT * FROM documents WHERE current_handler='leader'")
             docs = cur.fetchall()
 
         elif role == "admin":
@@ -286,9 +286,9 @@ def dashboard():
             docs = cur.fetchall()
 
         cur.execute("""
-            SELECT * FROM documents 
-            WHERE status IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
-        """)
+        SELECT * FROM documents 
+        WHERE status IN ('Đã duyệt','Từ chối','Đã duyệt (văn thư)')
+    """)
         done_docs = cur.fetchall()
 
     except Exception as e:

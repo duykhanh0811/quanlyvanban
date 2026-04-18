@@ -44,6 +44,10 @@
 <a href="/admin/reports" class="btn btn-danger mb-3">📢 Xem phản hồi</a>
 {% endif %}
 
+{% if role == "admin" %}
+<a href="/admin/users" class="btn btn-dark mb-3">👤 Quản lý tài khoản</a>
+{% endif %}
+
 <!-- 📥 ĐANG XỬ LÝ -->
 <div class="card p-3 mb-4 shadow">
     <h5>📥 Văn bản đang xử lý</h5>

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>✏️ Sửa tài khoản</h3>
+
+<form method="post">
+    <input class="form-control mb-2" name="username" value="{{u.username}}">
+
+    <select class="form-control mb-2" name="role">
+        <option value="lecturer" {% if u.role=='lecturer' %}selected{% endif %}>Giảng viên</option>
+        <option value="staff" {% if u.role=='staff' %}selected{% endif %}>Văn thư</option>
+        <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+    </select>
+
+    <input class="form-control mb-2" name="department" value="{{u.department}}">
+    <input class="form-control mb-2" name="position" value="{{u.position}}">
+
+    <button class="btn btn-success">Lưu</button>
+</form>
+
+{% endblock %}

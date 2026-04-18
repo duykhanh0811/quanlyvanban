@@ -146,9 +146,21 @@ def add_user():
 
         username = request.form["username"]
         password = request.form["password"]
-        role = request.form["role"]
+        role = request.form.get("role")
+        position = request.form.get("position")
 
-        print("DEBUG ROLE:", role)  # 🔥 check xem có phải leader không
+        # 🔥 AUTO SET ROLE THEO CHỨC VỤ
+        if position:
+            pos = position.lower().strip()
+
+            if "lãnh đạo" in pos:
+                role = "leader"
+            elif "văn thư" in pos:
+                role = "staff"
+            elif "giảng viên" in pos:
+                role = "lecturer"
+
+        print("DEBUG ROLE SAU XỬ LÝ:", role)
 
         try:
             # 🔥 CHECK TRÙNG USERNAME
@@ -163,11 +175,11 @@ def add_user():
             """, (
                 username,
                 password,
-                role,
+                role,  # 🔥 dùng role đã xử lý
                 request.form.get("full_name"),
                 request.form.get("lecturer_id"),
                 request.form.get("department"),
-                request.form.get("position")
+                position
             ))
 
             db.commit()
@@ -179,7 +191,7 @@ def add_user():
             cur.close()
             db.close()
 
-        return redirect("/admin/users")  # 🔥 QUAN TRỌNG
+        return redirect("/admin/users")
 
     return render_template("add_user.html")
 

@@ -29,6 +29,21 @@
 </div>
 {% endif %}
 
+{% if role == "lecturer" %}
+<div class="card p-3 mb-4 shadow">
+    <h5>📢 Gửi phản hồi</h5>
+
+    <form action="/report" method="post">
+        <textarea class="form-control mb-2" name="content" placeholder="Nhập phản hồi..."></textarea>
+        <button class="btn btn-warning w-100">Gửi</button>
+    </form>
+</div>
+{% endif %}
+
+{% if role == "admin" %}
+<a href="/admin/reports" class="btn btn-danger mb-3">📢 Xem phản hồi</a>
+{% endif %}
+
 <!-- 📥 ĐANG XỬ LÝ -->
 <div class="card p-3 mb-4 shadow">
     <h5>📥 Văn bản đang xử lý</h5>

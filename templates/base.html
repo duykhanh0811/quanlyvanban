@@ -143,50 +143,95 @@ table th {
         <!-- ===== SIDEBAR ===== -->
         <div class="col-2 sidebar">
 
-            <h4>📂 QL Văn Bản</h4>
-            <hr>
+    <h4>📂 QL Văn Bản</h4>
+    <hr>
 
-            <a href="/dashboard">🏠 Trang chủ</a>
-            <a href="/dashboard">📥 Văn bản đến</a>
-            <a href="/dashboard">📤 Văn bản đi</a>
-            <a href="/stats">📊 Thống kê</a>
-            <a href="/library">📚 Văn bản lưu trữ</a>
-            <a href="/create">➕ Thêm văn bản</a>
-            {% if session["role"] == "admin" %}
-    <a href="/admin/add_user">👤 Thêm tài khoản</a>
+    <!-- 👤 THÔNG TIN USER -->
+    <div class="mb-3 text-center">
+        <b>{{ session.get("user") }}</b><br>
+        <small class="text-light">{{ session.get("role") }}</small>
+    </div>
+
+    <!-- 🏠 CHUNG -->
+    <a href="/dashboard">🏠 Trang chủ</a>
+
+    <!-- 👨‍🏫 GIẢNG VIÊN -->
+    {% if session.get("role") == "lecturer" %}
+        <div class="menu-title">📤 Quản lý văn bản</div>
+        <a href="/dashboard">📄 Văn bản của tôi</a>
+        <a href="/create">➕ Tạo văn bản</a>
+
+        <div class="menu-title mt-2">💬 Hỗ trợ</div>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#reportModal">
+            ✍ Gửi phản hồi
+        </a>
+    {% endif %}
+
+    <!-- 🧾 VĂN THƯ -->
+    {% if session.get("role") == "staff" %}
+        <div class="menu-title">📥 Xử lý văn bản</div>
+        <a href="/dashboard">📄 Văn bản cần xử lý</a>
+        <a href="/library">📚 Kho lưu trữ</a>
+
+        <div class="menu-title mt-2">💬 Hỗ trợ</div>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#reportModal">
+            ✍ Gửi phản hồi
+        </a>
+    {% endif %}
+
+    <!-- 👑 ADMIN -->
+    {% if session.get("role") == "admin" %}
+        <div class="menu-title">📊 Quản trị</div>
+        <a href="/dashboard">📊 Tổng quan</a>
+        <a href="/stats">📈 Thống kê</a>
+
+        <div class="menu-title mt-2">👤 Người dùng</div>
+        <a href="/admin/users">📋 Danh sách tài khoản</a>
+        <a href="/admin/add_user">➕ Thêm tài khoản</a>
+
+        <div class="menu-title mt-2">📨 Phản hồi</div>
+        <a href="/admin/reports">📩 Xem phản hồi</a>
+    {% endif %}
+
+    {% if session.get("role") == "leader" %}
+    <div class="menu-title">👑 Lãnh đạo</div>
+
+    <a href="/dashboard">📥 Văn bản chờ duyệt</a>
+
+    <a href="#" data-bs-toggle="modal" data-bs-target="#reportModal">
+        ✍ Gửi phản hồi
+    </a>
 {% endif %}
 
-            <!-- ===== MENU THƯ VIỆN ===== -->
-            <div class="menu-title" onclick="toggleMenu()">
-                📚 Thư viện văn bản
-            </div>
+    <!-- 📚 MENU MỞ RỘNG (DÙNG CHUNG) -->
+    <div class="menu-title mt-3" onclick="toggleMenu()">
+        📚 Thư viện văn bản
+    </div>
 
-            <div id="submenu" class="submenu">
-                <b>Loại văn bản</b>
-                <a href="#">Kế hoạch</a>
-                <a href="#">Quyết định</a>
-                <a href="#">Thông báo</a>
+    <div id="submenu" class="submenu">
+        <b>Loại văn bản</b>
+        <a href="#">Kế hoạch</a>
+        <a href="#">Quyết định</a>
+        <a href="#">Thông báo</a>
 
-                <b class="mt-2 d-block">Cơ quan</b>
-                <a href="#">Sở Y tế</a>
-                <a href="#">ĐH GTVT</a>
+        <b class="mt-2 d-block">Cơ quan</b>
+        <a href="#">Sở Y tế</a>
+        <a href="#">ĐH GTVT</a>
 
-                <b class="mt-2 d-block">Lĩnh vực</b>
-                <a href="#">Tài chính</a>
-                <a href="#">Thanh tra</a>
-                <a href="#">Y tế</a>
-            </div>
+        <b class="mt-2 d-block">Lĩnh vực</b>
+        <a href="#">Tài chính</a>
+        <a href="#">Thanh tra</a>
+        <a href="#">Y tế</a>
+    </div>
 
-            <hr>
+    <hr>
 
-            <a href="/logout" style="background:#dc3545; text-align:center;">
-                🚪 Đăng xuất
-            </a>
-            <a href="#" data-bs-toggle="modal" data-bs-target="#reportModal">
-    ✍ Gửi phản hồi
-</a>
+    <!-- 🚪 LOGOUT -->
+    <a href="/logout" style="background:#dc3545; text-align:center;">
+        🚪 Đăng xuất
+    </a>
 
-        </div>
+</div>
 
         <!-- ===== CONTENT ===== -->
         <div class="col-10 content">

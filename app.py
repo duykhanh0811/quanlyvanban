@@ -144,23 +144,28 @@ def add_user():
         db = get_db()
         cur = db.cursor()
 
-        cur.execute("""
-INSERT INTO users (username, password, role, full_name, lecturer_id, department, position)
-VALUES (%s,%s,%s,%s,%s,%s,%s)
-""", (
-    request.form["username"],
-    request.form["password"],
-    request.form["role"],
-    request.form.get("full_name"),
-    request.form.get("lecturer_id"),
-    request.form.get("department"),
-    request.form.get("position")
-))
+        try:
+            cur.execute("""
+                INSERT INTO users (username, password, role, full_name, lecturer_id, department, position)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                request.form["username"],
+                request.form["password"],
+                request.form["role"],
+                request.form.get("full_name"),
+                request.form.get("lecturer_id"),
+                request.form.get("department"),
+                request.form.get("position")
+            ))
 
+            db.commit()
 
-        db.commit()
-        cur.close()
-        db.close()
+        except Exception as e:
+            return f"Lỗi tạo tài khoản: {e}"   # 🔥 in lỗi thật
+
+        finally:
+            cur.close()
+            db.close()
 
         return "Tạo tài khoản thành công!"
 

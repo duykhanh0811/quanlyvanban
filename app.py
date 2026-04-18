@@ -39,6 +39,18 @@ def init_db():
     cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT")
     cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS position TEXT")
 
+    # REPORTS
+    cur.execute("""
+CREATE TABLE IF NOT EXISTS reports (
+    id SERIAL PRIMARY KEY,
+    sender TEXT,
+    content TEXT,
+    reply TEXT,
+    status TEXT,
+    created_at TEXT
+)
+""")
+
     # DOCUMENTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS documents (
@@ -371,6 +383,42 @@ def reject(id):
     db.close()
     return redirect("/dashboard")
 
+@app.route("/admin/reports")
+def view_reports():
+    if "user" not in session or session["role"] != "admin":
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM reports ORDER BY id DESC")
+    reports = cur.fetchall()
+
+    cur.close()
+    db.close()
+
+    return render_template("reports.html", reports=reports)
+
+@app.route("/reply/<int:id>", methods=["POST"])
+def reply(id):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("""
+    UPDATE reports 
+    SET reply=%s, status='Đã phản hồi'
+    WHERE id=%s
+    """, (
+        request.form["reply"],
+        id
+    ))
+
+    db.commit()
+    cur.close()
+    db.close()
+
+    return redirect("/admin/reports")
+
 # ================= FILE =================
 @app.route("/file/<name>")
 def file(name):
@@ -380,6 +428,30 @@ def file(name):
         return "File không tồn tại!"
 
     return send_from_directory(UPLOAD_FOLDER, name)
+
+@app.route("/report", methods=["POST"])
+def report():
+    if "user" not in session:
+        return redirect("/")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("""
+    INSERT INTO reports (sender, content, status, created_at)
+    VALUES (%s,%s,%s,%s)
+    """, (
+        session["user"],
+        request.form["content"],
+        "Chờ xử lý",
+        datetime.now().strftime("%d/%m/%Y %H:%M")
+    ))
+
+    db.commit()
+    cur.close()
+    db.close()
+
+    return redirect("/dashboard")
 
 # ================= LOGOUT =================
 @app.route("/logout")
